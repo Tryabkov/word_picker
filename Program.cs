@@ -5,24 +5,26 @@ namespace word_picker
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            var apsentLetters = new List<char>();
-            var PresentLetters = new List<char>();
-            int wordLenth = 0;
-            var wordDict = Intro(ref apsentLetters, ref PresentLetters, ref wordLenth);
-            List<string> foundWords = SearchWords(apsentLetters, PresentLetters, wordLenth, wordDict);
             Console.WriteLine();
+            var foundWords = SearchWords();
             for (int i = 0; i < foundWords.Count; i++)
             {
                 Console.WriteLine(foundWords[i]);
             }          
             Console.ReadKey();
-
         }
 
-        static private List<string> SearchWords(List<char> apsentLetters, List<char> PresentLetters, int wordLenth, Dictionary<int, char> wordDict)
+        static private List<string> SearchWords()
         {
+            Word word = GetInformation();
+
+            List<char> apsentLetters = word.apsentLetters;
+            List<char> PresentLetters = word.presentLetters;
+            int wordLength = word.length;
+            Dictionary<int, char> wordDict = word.lettersOrder;
+
             List<string> foundWords = new List<string>();
             List<string> wordsAllowedByLenth = new List<string>();
             List<string> wordsAllowedByLenthAndHasLetters = new List<string>();
@@ -30,9 +32,10 @@ namespace word_picker
             List<string> words = CreateWordArray();
             bool isContain = false;
 
+
             for (int i = 0; i < words.Count; i++)
             {
-                if (words[i].Length == wordLenth)
+                if (words[i].Length == wordLength)
                 {
                     wordsAllowedByLenth.Add(words[i]);
                 }
@@ -114,17 +117,15 @@ namespace word_picker
 
         static private List<string> CreateWordArray()
         {
-            List<string> words = new List<string>();
-
             string script = "SELECT * FROM nouns";
             DataTable table = RequestToDB(script);
             DataRow[] rows = table.Select();
+            List<string> words = new List<string>(rows.Count());
+
             for (int i = 0; i < rows.Length; i++)
             {
                 words.Add(rows[i].ItemArray[1].ToString());
             }
-
-
             return words;
         }
 
@@ -141,75 +142,67 @@ namespace word_picker
             return table;
         }
 
-        static private bool IsChar(string String)
+        static private Dictionary<int, char> RequestLettersOrder(int wordLength, string description)
         {
-            if (String.Length == 1)
+            var lettersOrder = new Dictionary<int, char>();
+            char tempChar;
+            Console.WriteLine(description);
+
+            for (int i = 0; i < wordLength; i++)
             {
-                return true;
+                Console.Write(i + 1 + " - ");
+                if (char.TryParse(Console.ReadLine(), out tempChar))
+                {
+                    lettersOrder.Add(i, tempChar);
+                }
+                else 
+                {
+                    RequestLettersOrder(wordLength, description);
+                    break;
+                }
             }
-            else
-            {
-                return false;
-            }
+            return lettersOrder;            
         }
 
-        static private string RequestLetters(string text)
+        static private string RequestLetters(string description)
         {
-            Console.Write(text);
+            Console.Write(description);
             return Console.ReadLine().ToLower();
         }
 
-        static private int RequestNumber(string text)
+        static private int RequestNumber(string descripton)
         {
-            Console.Write(text);
-            try
+            Console.Write(descripton);
+            int result;
+            if (int.TryParse(Console.ReadLine(), out result))
             {
-                return Convert.ToInt32(Console.ReadLine());
+                return result;
             }
-            catch (Exception)
+            else
             {
                 Console.WriteLine("\nВведите корректное значение");
-                return RequestNumber(text);
-            }
-            
+                return RequestNumber(descripton);
+            }            
         }
 
-        static private Dictionary<int, char> Intro(ref List<char> apsentLetters, ref List<char> PresentLetters, ref int wordLenth)
+        static private void WriteChars(List<char> array, string sourse)
         {
-            var wordDict = new Dictionary<int, char>();
-            string tempString;
+            foreach (var item in sourse)
+            {
+                array.Add(item);
+            }
+        }
+
+        static private Word GetInformation()
+        {
+            var word = new Word();
+
             Console.WriteLine("Это подбиратель слов!\n\nВведите буквы(без пробелов и запятых) которые");
-            tempString = RequestLetters("Отсутствуют в слове(серые): ");
-            if (tempString != null)
-            {
-                for (int i = 0; i < tempString.Length; i++)
-                {
-                    apsentLetters.Add(tempString[i]);
-                }
-            }
-
-            tempString = RequestLetters("\nЕсть в слове, но неизвестно где(белые): ");
-            if (tempString != null)
-            {
-                for (int i = 0; i < tempString.Length; i++)
-                {
-                    PresentLetters.Add(tempString[i]);
-                }
-            }
-
-            wordLenth = RequestNumber("\nВведите длину слова: ");
-            Console.WriteLine("\nНиже нужно записать буквы, которые стоят в слове в определённом месте(желтые)\n");
-            for (int i = 1; i < wordLenth + 1; i++)
-            {
-                Console.Write(i + " - ");
-                tempString = Console.ReadLine();
-                if (tempString != "")
-                {
-                    var tempChar = tempString[0];
-                    wordDict.Add(i - 1, tempChar);
-                }
-            }
-            return wordDict;
+            WriteChars(word.apsentLetters, RequestLetters("Отсутствуют в слове(серые): "));
+            WriteChars(word.presentLetters, RequestLetters("\nЕсть в слове, но неизвестно где(белые): "));
+            word.length = RequestNumber("\nВведите длину слова: ");
+            word.lettersOrder = RequestLettersOrder(word.length , "\nНиже нужно записать буквы, которые стоят в слове в определённом месте(желтые)\n");            
+            return word;
         }
     }
 }
