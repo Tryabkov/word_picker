@@ -1,5 +1,7 @@
 ﻿using MySql.Data.MySqlClient;
 using System.Data;
+using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Attributes;
 
 namespace word_picker
 {
