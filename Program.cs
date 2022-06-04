@@ -19,22 +19,23 @@ namespace word_picker
         static private List<string> SearchWords()
         {
             Word word = GetInformation();
-            List<string> words = CreateWordArray();
 
             List<char> apsentLetters = word.apsentLetters;
             List<char> PresentLetters = word.presentLetters;
+            int wordLength = word.length;
             Dictionary<int, char> wordDict = word.lettersOrder;
 
             List<string> foundWords = new List<string>();
             List<string> wordsAllowedByLenth = new List<string>();
             List<string> wordsAllowedByLenthAndHasLetters = new List<string>();
             List<string> wordsAllowedByLenthAndRightLetters = new List<string>();
+            List<string> words = CreateWordArray();
             bool isContain = false;
 
 
             for (int i = 0; i < words.Count; i++)
             {
-                if (words[i].Length == word.length)
+                if (words[i].Length == wordLength)
                 {
                     wordsAllowedByLenth.Add(words[i]);
                 }
@@ -157,11 +158,7 @@ namespace word_picker
                     {
                         lettersOrder.Add(i, String[0]);
                     }
-                    else 
-                    {
-                        lettersOrder.Clear();
-                        RequestLettersOrder(wordLength, description);
-                    }
+                    else RequestLettersOrder(wordLength, description);
                 }
             }
             return lettersOrder;            
