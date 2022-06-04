@@ -7,8 +7,8 @@ namespace word_picker
     {
         static void Main()
         {
-            Console.WriteLine();
             var foundWords = SearchWords();
+            Console.WriteLine();
             for (int i = 0; i < foundWords.Count; i++)
             {
                 Console.WriteLine(foundWords[i]);
@@ -145,20 +145,20 @@ namespace word_picker
         static private Dictionary<int, char> RequestLettersOrder(int wordLength, string description)
         {
             var lettersOrder = new Dictionary<int, char>();
-            char tempChar;
+            string String;
             Console.WriteLine(description);
 
             for (int i = 0; i < wordLength; i++)
             {
                 Console.Write(i + 1 + " - ");
-                if (char.TryParse(Console.ReadLine(), out tempChar))
+                String = Console.ReadLine();
+                if (!string.IsNullOrEmpty(String))
                 {
-                    lettersOrder.Add(i, tempChar);
-                }
-                else 
-                {
-                    RequestLettersOrder(wordLength, description);
-                    break;
+                    if (char.IsLetter(String[0]))
+                    {
+                        lettersOrder.Add(i, String[0]);
+                    }
+                    else RequestLettersOrder(wordLength, description);
                 }
             }
             return lettersOrder;            
