@@ -1,5 +1,6 @@
-﻿using MySql.Data.MySqlClient;
-using System.Data;
+﻿using System.Data;
+using MySql.Data.MySqlClient;
+
 namespace word_picker
 {
     internal class Program
@@ -17,8 +18,8 @@ namespace word_picker
 
         static private List<string> SearchWords()
         {
+            var start = DateTime.Now; 
             Word word = GetInformation();
-
             List<string> foundWords = new List<string>();
             List<string> wordsWithRightLenth = new List<string>();
             List<string> wordsWithRightLenthAndHasLetters = new List<string>();
@@ -105,7 +106,7 @@ namespace word_picker
             {
                 foundWords = wordsWithRightLenthAndRightLetters;
             }
-
+            Console.WriteLine(DateTime.Now - start);
             return foundWords;
         }
 
