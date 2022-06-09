@@ -12,7 +12,7 @@ namespace word_picker
         const string SERVER = "remotemysql.com";
         const string PORT = "3306";
         const string USERNAME = "R52QYsdmFl";
-        const string PASSWORD = "cmFhRfTJoF";    
+        const string PASSWORD = "cmFhRfTJoF";
         const string DATABASE = "R52QYsdmFl";
 
         MySqlConnection connection = new MySqlConnection($"server={SERVER};port={PORT};username={USERNAME};password={PASSWORD};database={DATABASE}");

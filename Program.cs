@@ -1,8 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
 using System.Data;
-using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Attributes;
-
 namespace word_picker
 {
     internal class Program
@@ -14,7 +11,7 @@ namespace word_picker
             for (int i = 0; i < foundWords.Count; i++)
             {
                 Console.WriteLine(foundWords[i]);
-            }          
+            }
             Console.ReadKey();
         }
 
@@ -22,33 +19,28 @@ namespace word_picker
         {
             Word word = GetInformation();
 
-            List<char> apsentLetters = word.apsentLetters;
-            List<char> PresentLetters = word.presentLetters;
-            int wordLength = word.length;
-            Dictionary<int, char> wordDict = word.lettersOrder;
-
             List<string> foundWords = new List<string>();
-            List<string> wordsAllowedByLenth = new List<string>();
-            List<string> wordsAllowedByLenthAndHasLetters = new List<string>();
-            List<string> wordsAllowedByLenthAndRightLetters = new List<string>();
+            List<string> wordsWithRightLenth = new List<string>();
+            List<string> wordsWithRightLenthAndHasLetters = new List<string>();
+            List<string> wordsWithRightLenthAndRightLetters = new List<string>();
             List<string> words = CreateWordArray();
             bool isContain = false;
 
 
             for (int i = 0; i < words.Count; i++)
             {
-                if (words[i].Length == wordLength)
+                if (words[i].Length == word.length)
                 {
-                    wordsAllowedByLenth.Add(words[i]);
+                    wordsWithRightLenth.Add(words[i]);
                 }
             }
 
-            for (int i = 0; i < wordsAllowedByLenth.Count; i++)
+            for (int i = 0; i < wordsWithRightLenth.Count; i++)
             {
                 isContain = true;
-                for (int j = 0; j < PresentLetters.Count; j++)
+                for (int j = 0; j < word.presentLetters.Count; j++)
                 {
-                    if (wordsAllowedByLenth[i].Contains(PresentLetters[j]))
+                    if (wordsWithRightLenth[i].Contains(word.presentLetters[j]))
                     {
                         isContain = true;
                     }
@@ -60,16 +52,16 @@ namespace word_picker
                 }
                 if (isContain)
                 {
-                    wordsAllowedByLenthAndHasLetters.Add(wordsAllowedByLenth[i]);
+                    wordsWithRightLenthAndHasLetters.Add(wordsWithRightLenth[i]);
                 }
             }
 
-            for (int i = 0; i < wordsAllowedByLenthAndHasLetters.Count; i++)
+            for (int i = 0; i < wordsWithRightLenthAndHasLetters.Count; i++)
             {
                 isContain = false;
-                for (int j = 0; j < apsentLetters.Count; j++)
+                for (int j = 0; j < word.apsentLetters.Count; j++)
                 {
-                    if (!wordsAllowedByLenthAndHasLetters[i].Contains(apsentLetters[j]))
+                    if (!wordsWithRightLenthAndHasLetters[i].Contains(word.apsentLetters[j]))
                     {
                         isContain = false;
                     }
@@ -81,19 +73,19 @@ namespace word_picker
                 }
                 if (!isContain)
                 {
-                    wordsAllowedByLenthAndRightLetters.Add(wordsAllowedByLenthAndHasLetters[i]);
+                    wordsWithRightLenthAndRightLetters.Add(wordsWithRightLenthAndHasLetters[i]);
                 }
             }
 
-            if (wordDict.Count != 0)
+            if (word.lettersOrder.Count != 0)
             {
-                for (int i = 0; i < wordsAllowedByLenthAndRightLetters.Count; i++)
+                for (int i = 0; i < wordsWithRightLenthAndRightLetters.Count; i++)
                 {
-                    var valuesArr = wordDict.Values.ToArray();
-                    var keysArr = wordDict.Keys.ToArray();
-                    for (int j = 0; j < wordDict.Count; j++)
+                    var valuesArr = word.lettersOrder.Values.ToArray();
+                    var keysArr = word.lettersOrder.Keys.ToArray();
+                    for (int j = 0; j < word.lettersOrder.Count; j++)
                     {
-                        if (wordsAllowedByLenthAndRightLetters[i][keysArr[j]] == valuesArr[j])
+                        if (wordsWithRightLenthAndRightLetters[i][keysArr[j]] == valuesArr[j])
                         {
                             isContain = true;
                         }
@@ -105,13 +97,13 @@ namespace word_picker
                     }
                     if (isContain)
                     {
-                        foundWords.Add(wordsAllowedByLenthAndRightLetters[i]);
+                        foundWords.Add(wordsWithRightLenthAndRightLetters[i]);
                     }
                 }
             }
             else
             {
-                foundWords = wordsAllowedByLenthAndRightLetters;
+                foundWords = wordsWithRightLenthAndRightLetters;
             }
 
             return foundWords;
@@ -160,10 +152,13 @@ namespace word_picker
                     {
                         lettersOrder.Add(i, String[0]);
                     }
-                    else RequestLettersOrder(wordLength, description);
+                    else
+                    {
+                        RequestLettersOrder(wordLength, description);
+                    }
                 }
             }
-            return lettersOrder;            
+            return lettersOrder;
         }
 
         static private string RequestLetters(string description)
@@ -184,7 +179,7 @@ namespace word_picker
             {
                 Console.WriteLine("\nВведите корректное значение");
                 return RequestNumber(descripton);
-            }            
+            }
         }
 
         static private void WriteChars(List<char> array, string sourse)
@@ -203,7 +198,7 @@ namespace word_picker
             WriteChars(word.apsentLetters, RequestLetters("Отсутствуют в слове(серые): "));
             WriteChars(word.presentLetters, RequestLetters("\nЕсть в слове, но неизвестно где(белые): "));
             word.length = RequestNumber("\nВведите длину слова: ");
-            word.lettersOrder = RequestLettersOrder(word.length , "\nНиже нужно записать буквы, которые стоят в слове в определённом месте(желтые)\n");            
+            word.lettersOrder = RequestLettersOrder(word.length, "\nНиже нужно записать буквы, которые стоят в слове в определённом месте(желтые)\n");
             return word;
         }
     }
