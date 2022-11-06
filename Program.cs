@@ -7,134 +7,89 @@ namespace word_picker
     {
         static void Main()
         {
-            var foundWords = SearchWords();
-            Console.WriteLine();
-            for (int i = 0; i < foundWords.Count; i++)
+            while (true)
             {
-                Console.WriteLine(foundWords[i]);
+                var foundWords = SearchWords();
+                Console.WriteLine();
+                for (int i = 0; i < foundWords.Count; i++)
+                {
+                    Console.WriteLine(foundWords[i]);
+                }
+                Console.WriteLine("\n\n\n-----------------------------------------\n\n\n");
+                Console.ReadKey();
             }
-            Console.ReadKey();
         }
 
         static private List<string> SearchWords()
         {
             Word word = GetInformation();
-
-            List<string> foundWords = new List<string>();
-            List<string> wordsWithRightLenth = new List<string>();
-            List<string> wordsWithRightLenthAndHasLetters = new List<string>();
-            List<string> wordsWithRightLenthAndRightLetters = new List<string>();
-            List<string> words = CreateWordArray();
-            bool isContain = false;
-
+            List<string> words = CreateWordArray(word.length);
 
             for (int i = 0; i < words.Count; i++)
             {
-                if (words[i].Length == word.length)
+                foreach (var apcentLetter in word.apsentLetters)
                 {
-                    wordsWithRightLenth.Add(words[i]);
-                }
-            }
-
-            for (int i = 0; i < wordsWithRightLenth.Count; i++)
-            {
-                isContain = true;
-                for (int j = 0; j < word.presentLetters.Count; j++)
-                {
-                    if (wordsWithRightLenth[i].Contains(word.presentLetters[j]))
+                    if (words[i].Contains(apcentLetter))
                     {
-                        isContain = true;
-                    }
-                    else
-                    {
-                        isContain = false;
+                        words.RemoveAt(i);
+                        i--;
                         break;
                     }
                 }
-                if (isContain)
-                {
-                    wordsWithRightLenthAndHasLetters.Add(wordsWithRightLenth[i]);
-                }
             }
 
-            for (int i = 0; i < wordsWithRightLenthAndHasLetters.Count; i++)
+            for (int i = 0; i < words.Count; i++)
             {
-                isContain = false;
-                for (int j = 0; j < word.apsentLetters.Count; j++)
+                foreach (var presentLetter in word.presentLetters)
                 {
-                    if (!wordsWithRightLenthAndHasLetters[i].Contains(word.apsentLetters[j]))
+                    if (!words[i].Contains(presentLetter))
                     {
-                        isContain = false;
-                    }
-                    else
-                    {
-                        isContain = true;
+                        words.RemoveAt(i);
+                        i--;
                         break;
                     }
-                }
-                if (!isContain)
-                {
-                    wordsWithRightLenthAndRightLetters.Add(wordsWithRightLenthAndHasLetters[i]);
                 }
             }
 
             if (word.lettersOrder.Count != 0)
             {
-                for (int i = 0; i < wordsWithRightLenthAndRightLetters.Count; i++)
+                for (int i = 0; i < words.Count; i++)
                 {
-                    var valuesArr = word.lettersOrder.Values.ToArray();
-                    var keysArr = word.lettersOrder.Keys.ToArray();
                     for (int j = 0; j < word.lettersOrder.Count; j++)
                     {
-                        if (wordsWithRightLenthAndRightLetters[i][keysArr[j]] == valuesArr[j])
+                        if (words[i][j] != word.lettersOrder[j])
                         {
-                            isContain = true;
+                            words.RemoveAt(i);
+                            i--;
                         }
-                        else
-                        {
-                            isContain = false;
-                            break;
-                        }
-                    }
-                    if (isContain)
-                    {
-                        foundWords.Add(wordsWithRightLenthAndRightLetters[i]);
                     }
                 }
-            }
-            else
-            {
-                foundWords = wordsWithRightLenthAndRightLetters;
-            }
-
-            return foundWords;
-        }
-
-        static private List<string> CreateWordArray()
-        {
-            string script = "SELECT * FROM nouns";
-            DataTable table = RequestToDB(script);
-            DataRow[] rows = table.Select();
-            List<string> words = new List<string>(rows.Count());
-
-            for (int i = 0; i < rows.Length; i++)
-            {
-                words.Add(rows[i].ItemArray[1].ToString());
             }
             return words;
         }
 
-        static private DataTable RequestToDB(string script)
+        static private List<string> CreateWordArray(int length)
         {
             DB DataBase = new DB();
             DataTable table = new DataTable();
 
-            MySqlCommand command = new MySqlCommand(script, DataBase.GetConnection());
+            MySqlCommand command = new MySqlCommand("SELECT word FROM nouns WHERE char_length(word) = @length", DataBase.GetConnection());
+            command.Parameters.Add("@length", MySqlDbType.Int32, 12).Value = length;
+
             MySqlDataAdapter adapter = new MySqlDataAdapter(command);
             adapter.Fill(table);
+
             DataBase.OpenConnection();
             DataBase.CloseConnection();
-            return table;
+
+            DataRow[] rows = table.Select();
+            List<string> words = new List<string>(rows.Length - 1);
+
+            for (int i = 0; i < rows.Length; i++)
+            {
+                words.Add(rows[i].ItemArray[0].ToString());
+            }
+            return words;
         }
 
         static private Dictionary<int, char> RequestLettersOrder(int wordLength, string description)
